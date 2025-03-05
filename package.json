@@ -1,0 +1,28 @@
+{
+  "name": "autotask-datasource",
+  "version": "1.0.0",
+  "description": "Grafana datasource for Kaseya Autotask PSA",
+  "scripts": {
+    "build": "grafana-toolkit plugin:build",
+    "dev": "grafana-toolkit plugin:dev",
+    "watch": "grafana-toolkit plugin:dev",
+    "test": "grafana-toolkit plugin:test",
+    "e2e": "grafana-toolkit plugin:e2e"
+  },
+  "author": "WyreTech",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@grafana/toolkit": "^10.0.0",
+    "@grafana/ui": "^10.0.0",
+    "@types/jest": "^29.5.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "jest": "^29.5.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

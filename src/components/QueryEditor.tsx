@@ -1,40 +1,95 @@
 import React from 'react';
-import { QueryEditorProps } from '@grafana/data';
-import { AutotaskQuery } from '../types';
-import { Select, Input } from '@grafana/ui';
+import { Select, InlineField, Input } from '@grafana/ui';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
+import { AutotaskDatasource } from '../datasource';
+import {
+  AutotaskQuery,
+  AutotaskDatasourceOptions,
+  AutotaskEntityType,
+  ENTITY_TYPES,
+  DEFAULT_AUTOTASK_QUERY,
+} from '../types';
 
-export function QueryEditor({ query, onChange, datasource }: QueryEditorProps<AutotaskQuery>) {
-  const onQueryTypeChange = (value: string) => {
-    onChange({ ...query, queryType: value });
+type Props = QueryEditorProps<AutotaskDatasource, AutotaskQuery, AutotaskDatasourceOptions>;
+
+export function QueryEditor({ query, onChange, onRunQuery }: Props) {
+  const q: AutotaskQuery = {
+    ...DEFAULT_AUTOTASK_QUERY,
+    ...query,
+  } as AutotaskQuery;
+
+  const entityMeta = ENTITY_TYPES.find((e) => e.value === q.queryType);
+
+  const entityOptions: Array<SelectableValue<AutotaskEntityType>> = ENTITY_TYPES.map((e) => ({
+    label: e.label,
+    value: e.value,
+    description: e.description,
+  }));
+
+  const timeFieldOptions: Array<SelectableValue<string>> = [
+    { label: 'None', value: '', description: 'Do not filter by time range' },
+    ...(entityMeta?.timeFields.map((f) => ({ label: f, value: f })) || []),
+  ];
+
+  const onQueryTypeChange = (value: SelectableValue<AutotaskEntityType>) => {
+    if (value.value) {
+      onChange({ ...q, queryType: value.value, timeField: '' });
+      onRunQuery();
+    }
   };
 
-  const onFilterChange = (value: string) => {
-    onChange({ ...query, filter: value });
+  const onFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onChange({ ...q, filter: event.target.value });
+  };
+
+  const onFilterBlur = () => {
+    onRunQuery();
+  };
+
+  const onTimeFieldChange = (value: SelectableValue<string>) => {
+    onChange({ ...q, timeField: value.value || '' });
+    onRunQuery();
   };
 
   return (
-    <div className="gf-form">
+    <div>
       <div className="gf-form-inline">
-        <div className="gf-form">
-          <label className="gf-form-label width-8">Query Type</label>
+        <InlineField label="Entity" labelWidth={12} tooltip="The Autotask entity type to query">
           <Select
-            value={query.queryType}
-            onChange={(value) => onQueryTypeChange(value.value)}
-            options={[
-              { label: 'Tickets', value: 'tickets' },
-              { label: 'Resources', value: 'resources' },
-              { label: 'Companies', value: 'companies' },
-            ]}
+            options={entityOptions}
+            value={entityOptions.find((o) => o.value === q.queryType)}
+            onChange={onQueryTypeChange}
+            width={24}
           />
-        </div>
-        <div className="gf-form">
-          <label className="gf-form-label width-8">Filter</label>
+        </InlineField>
+        <InlineField
+          label="Time Field"
+          labelWidth={12}
+          tooltip="Map a date field to the Grafana time range for filtering"
+        >
+          <Select
+            options={timeFieldOptions}
+            value={timeFieldOptions.find((o) => o.value === q.timeField)}
+            onChange={onTimeFieldChange}
+            width={24}
+            isClearable
+          />
+        </InlineField>
+      </div>
+      <div className="gf-form-inline">
+        <InlineField
+          label="Filter"
+          labelWidth={12}
+          tooltip="Autotask query filter JSON (optional). Example: {&quot;op&quot;:&quot;eq&quot;,&quot;field&quot;:&quot;status&quot;,&quot;value&quot;:1}"
+          grow
+        >
           <Input
-            value={query.filter}
-            onChange={(e) => onFilterChange(e.currentTarget.value)}
-            placeholder="Enter filter query..."
+            value={q.filter}
+            placeholder='{"op":"eq","field":"status","value":1}'
+            onChange={onFilterChange}
+            onBlur={onFilterBlur}
           />
-        </div>
+        </InlineField>
       </div>
     </div>
   );

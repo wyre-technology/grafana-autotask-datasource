@@ -9,7 +9,7 @@ import (
 // AutotaskConfig represents the configuration for the Autotask datasource
 type AutotaskConfig struct {
 	Username        string `json:"username"`
-	Zone            string `json:"zone"`
+	URL             string `json:"url"`
 	Secret          string `json:"-"`
 	IntegrationCode string `json:"-"`
 }
@@ -18,14 +18,22 @@ type AutotaskConfig struct {
 func LoadSettings(settings backend.DataSourceInstanceSettings) (*AutotaskConfig, error) {
 	config := &AutotaskConfig{}
 
-	// Load basic settings
 	if err := json.Unmarshal(settings.JSONData, config); err != nil {
 		return nil, err
 	}
 
-	// Load secure settings
+	// Load secure settings from Grafana's encrypted store
 	config.Secret = settings.DecryptedSecureJSONData["secret"]
 	config.IntegrationCode = settings.DecryptedSecureJSONData["integrationCode"]
+
+	// Fall back to datasource URL if not in JSONData
+	if config.URL == "" {
+		config.URL = settings.URL
+	}
+
+	if err := config.Validate(); err != nil {
+		return nil, err
+	}
 
 	return config, nil
 }
@@ -35,14 +43,14 @@ func (c *AutotaskConfig) Validate() error {
 	if c.Username == "" {
 		return ErrMissingUsername
 	}
-	if c.Zone == "" {
-		return ErrMissingZone
-	}
 	if c.Secret == "" {
 		return ErrMissingSecret
 	}
 	if c.IntegrationCode == "" {
 		return ErrMissingIntegrationCode
+	}
+	if c.URL == "" {
+		return ErrMissingURL
 	}
 	return nil
 }

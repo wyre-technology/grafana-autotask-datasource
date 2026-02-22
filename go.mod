@@ -1,4 +1,4 @@
-module github.com/wyretech/autotask-datasource
+module github.com/wyre-technology/grafana-autotask-datasource
 
 go 1.23.5
 

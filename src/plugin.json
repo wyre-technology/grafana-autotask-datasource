@@ -7,17 +7,17 @@
   "backend": true,
   "executable": "autotask-datasource",
   "info": {
-    "description": "Grafana datasource for Kaseya Autotask PSA",
+    "description": "Grafana datasource plugin for Kaseya Autotask PSA — query tickets, companies, contacts, and resources",
     "author": {
       "name": "WyreTech",
-      "url": "https://github.com/wyretech/autotask-datasource"
+      "url": "https://wyretech.net"
     },
     "keywords": [
+      "datasource",
       "autotask",
       "psa",
       "tickets",
-      "resources",
-      "companies"
+      "kaseya"
     ],
     "logos": {
       "small": "img/logo.svg",
@@ -25,20 +25,16 @@
     },
     "links": [
       {
-        "name": "Website",
-        "url": "https://github.com/wyretech/autotask-datasource"
-      },
-      {
-        "name": "License",
-        "url": "https://github.com/wyretech/autotask-datasource/blob/main/LICENSE"
+        "name": "GitHub",
+        "url": "https://github.com/wyre-technology/grafana-autotask-datasource"
       }
     ],
     "screenshots": [],
     "version": "1.0.0",
-    "updated": "2024-03-19"
+    "updated": "2026-02-21"
   },
   "dependencies": {
     "grafanaDependency": ">=10.0.0",
-    "grafanaVersion": "10.0.0"
+    "plugins": []
   }
 }

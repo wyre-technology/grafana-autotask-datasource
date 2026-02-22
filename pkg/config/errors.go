@@ -7,4 +7,5 @@ var (
 	ErrMissingZone            = errors.New("zone is required")
 	ErrMissingSecret          = errors.New("secret is required")
 	ErrMissingIntegrationCode = errors.New("integration code is required")
+	ErrMissingURL             = errors.New("URL is required")
 )

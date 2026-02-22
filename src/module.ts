@@ -1,27 +1,14 @@
 import { DataSourcePlugin } from '@grafana/data';
+import { AutotaskDatasource } from './datasource';
 import { ConfigEditor } from './components/ConfigEditor';
-import { AutotaskDataSource } from './datasource';
-import { AutotaskDataSourceOptions, AutotaskQuery } from './types';
+import { QueryEditor } from './components/QueryEditor';
+import { AutotaskQuery, AutotaskDatasourceOptions, AutotaskSecureJsonData } from './types';
 
-export const plugin = new DataSourcePlugin<AutotaskDataSource, AutotaskQuery, AutotaskDataSourceOptions>(
-  AutotaskDataSource
-)
+export const plugin = new DataSourcePlugin<
+  AutotaskDatasource,
+  AutotaskQuery,
+  AutotaskDatasourceOptions,
+  AutotaskSecureJsonData
+>(AutotaskDatasource)
   .setConfigEditor(ConfigEditor)
-  .setMetadata({
-    id: 'wyretech-autotask-datasource',
-    name: 'Autotask',
-    description: 'Query data from Autotask PSA',
-    info: {
-      author: {
-        name: 'Wyretech',
-      },
-      links: [
-        {
-          name: 'GitHub',
-          url: 'https://github.com/wyretech/autotask-datasource',
-        },
-      ],
-      version: '1.0.0',
-      updated: '2024-03-05',
-    },
-  });
+  .setQueryEditor(QueryEditor);

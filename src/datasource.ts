@@ -1,8 +1,4 @@
-import {
-  DataSourceInstanceSettings,
-  DataQueryRequest,
-  DataQueryResponse,
-} from '@grafana/data';
+import { DataSourceInstanceSettings } from '@grafana/data';
 import { DataSourceWithBackend, getBackendSrv } from '@grafana/runtime';
 import { AutotaskQuery, AutotaskDatasourceOptions } from './types';
 import { lastValueFrom, from } from 'rxjs';

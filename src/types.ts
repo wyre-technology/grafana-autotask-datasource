@@ -23,8 +23,14 @@ export interface AutotaskDatasourceOptions extends DataSourceJsonData {
 }
 
 export interface AutotaskSecureJsonData {
-  secret: string;
-  integrationCode: string;
+  // Optional: Grafana secure-json fields are write-only — never read back
+  // from the server, absent on config load (only secureJsonFields booleans
+  // indicate whether a value is set). The ConfigEditor builds partial
+  // updates ({ ...secureJsonData, secret }) so requiring both fields made
+  // TS reject the partial as not-assignable (TS2322). Readers already use
+  // secureJsonData?.secret ?? '' (optional-safe).
+  secret?: string;
+  integrationCode?: string;
 }
 
 // Entity type metadata for the query editor

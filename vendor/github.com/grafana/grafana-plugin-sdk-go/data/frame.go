@@ -21,6 +21,8 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/renderer"
+	"github.com/olekukonko/tablewriter/tw"
 )
 
 // Frame is a columnar data structure where each column is a Field.
@@ -45,6 +47,10 @@ type Frame struct {
 
 	// Meta is metadata about the Frame, and includes space for custom metadata.
 	Meta *FrameMeta
+}
+
+func (Frame) OpenAPIModelName() string {
+	return "com.github.grafana.grafana-plugin-sdk-go.data.Frame"
 }
 
 // UnmarshalJSON allows unmarshalling Frame from JSON.
@@ -180,6 +186,14 @@ func (f *Frame) EmptyCopy() *Frame {
 	return newFrame
 }
 
+// ZeroLength sets the length of every field to zero
+// This offers an efficient way to reuse the existing allocated slice in multiple data "pages"
+func (f *Frame) Clear() {
+	for _, field := range f.Fields {
+		field.vector.Clear()
+	}
+}
+
 // NewFrameOfFieldTypes returns a Frame where the Fields are initialized to the
 // corresponding field type in fTypes. Each Field will be of length FieldLen.
 func NewFrameOfFieldTypes(name string, fieldLen int, fTypes ...FieldType) *Frame {
@@ -280,6 +294,20 @@ func (f *Frame) Extend(i int) {
 	}
 }
 
+// SetRowCapacity reserves capacity for at least n additional rows on every
+// Field in the Frame without changing any Field's length. Use this before a
+// sequence of AppendRow calls when the final row count is known, to avoid
+// repeated reallocation of the underlying slices. It is a no-op for Fields
+// that already have enough capacity.
+func (f *Frame) SetRowCapacity(n int) {
+	for _, field := range f.Fields {
+		if field == nil {
+			continue
+		}
+		field.vector.Grow(n)
+	}
+}
+
 // ConcreteAt returns the concrete value at the specified fieldIdx and rowIdx.
 // A non-pointer type is returned regardless if the underlying type is a pointer
 // type or not. If the value is a nil pointer, the the zero value
@@ -347,23 +375,19 @@ func FrameTestCompareOptions() []cmp.Option {
 			if math.IsNaN(float64(*x)) {
 				return true
 			}
-			if math.IsInf(float64(*x), 1) {
+			if math.IsInf(float64(*x), 0) {
 				return true
 			}
-			if math.IsInf(float64(*x), -1) {
-				return true
-			}
+			return false
 		}
 		if x == nil {
 			if math.IsNaN(float64(*y)) {
 				return true
 			}
-			if math.IsInf(float64(*y), 1) {
+			if math.IsInf(float64(*y), 0) {
 				return true
 			}
-			if math.IsInf(float64(*y), -1) {
-				return true
-			}
+			return false
 		}
 		return *x == *y
 	})
@@ -464,19 +488,35 @@ func (f *Frame) StringTable(maxFields, maxRows int) (string, error) {
 	}
 
 	sb := &strings.Builder{}
-	sb.WriteString(fmt.Sprintf("Name: %v\n", f.Name))
-	sb.WriteString(fmt.Sprintf("Dimensions: %v Fields by %v Rows\n", len(f.Fields), rowLen))
+	fmt.Fprintf(sb, "Name: %v\n", f.Name)
+	fmt.Fprintf(sb, "Dimensions: %v Fields by %v Rows\n", len(f.Fields), rowLen)
 
-	table := tablewriter.NewWriter(sb)
-
-	// table formatting options
-	table.SetAutoFormatHeaders(false)
-	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	table.SetAutoWrapText(false)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table := tablewriter.NewTable(sb,
+		tablewriter.WithRenderer(renderer.NewBlueprint(tw.Rendition{
+			Symbols: tw.NewSymbols(tw.StyleASCII),
+		})),
+		tablewriter.WithConfig(tablewriter.Config{
+			Header: tw.CellConfig{
+				Formatting: tw.CellFormatting{
+					AutoFormat: tw.Off,
+				},
+				Alignment: tw.CellAlignment{
+					Global: tw.AlignLeft,
+				},
+			},
+			Row: tw.CellConfig{
+				Formatting: tw.CellFormatting{
+					AutoWrap: tw.WrapNone,
+				},
+				Alignment: tw.CellAlignment{
+					Global: tw.AlignLeft,
+				},
+			},
+		}),
+	)
 
 	// set table headers
-	headers := make([]string, width)
+	headers := make([]any, width)
 	for colIdx, field := range f.Fields {
 		if exceedsWidth && colIdx == maxFields-1 { // if Frame has more Fields than output table width and last Field
 			headers[colIdx] = fmt.Sprintf("...+%v field...", len(f.Fields)-colIdx)
@@ -484,11 +524,11 @@ func (f *Frame) StringTable(maxFields, maxRows int) (string, error) {
 		}
 		headers[colIdx] = fmt.Sprintf("Name: %v\nLabels: %s\nType: %s", field.Name, field.Labels, field.Type())
 	}
-	table.SetHeader(headers)
+	table.Header(headers...)
 
 	if maxRows == 0 {
-		table.Render()
-		return sb.String(), nil
+		err = table.Render()
+		return sb.String(), err
 	}
 
 	for rowIdx := 0; rowIdx < length; rowIdx++ {
@@ -499,7 +539,9 @@ func (f *Frame) StringTable(maxFields, maxRows int) (string, error) {
 			for i := range sRow {
 				sRow[i] = maxLengthExceededStr
 			}
-			table.Append(sRow)
+			if err = table.Append(sRow); err != nil {
+				return "", err
+			}
 			break
 		}
 
@@ -524,11 +566,13 @@ func (f *Frame) StringTable(maxFields, maxRows int) (string, error) {
 				sRow[colIdx] = fmt.Sprintf("%v", val)
 			}
 		}
-		table.Append(sRow)
+		if err = table.Append(sRow); err != nil {
+			return "", err
+		}
 	}
 
-	table.Render()
-	return sb.String(), nil
+	err = table.Render()
+	return sb.String(), err
 }
 
 // FieldByName returns Field by its name and its index in Frame.Fields.

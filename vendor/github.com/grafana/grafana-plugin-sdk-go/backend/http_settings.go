@@ -45,6 +45,7 @@ type HTTPSettings struct {
 	SigV4Profile       string
 	SigV4AccessKey     string
 	SigV4SecretKey     string
+	SigV4SessionToken  string
 
 	JSONData       map[string]interface{}
 	SecureJSONData map[string]string
@@ -93,6 +94,7 @@ func (s *HTTPSettings) HTTPClientOptions() httpclient.Options {
 			Profile:       s.SigV4Profile,
 			AccessKey:     s.SigV4AccessKey,
 			SecretKey:     s.SigV4SecretKey,
+			SessionToken:  s.SigV4SessionToken,
 			AssumeRoleARN: s.SigV4AssumeRoleARN,
 			ExternalID:    s.SigV4ExternalID,
 			Region:        s.SigV4Region,
@@ -127,7 +129,9 @@ func parseHTTPSettings(jsonData json.RawMessage, secureJSONData map[string]strin
 
 	// Basic auth
 	if v, exists := dat["basicAuth"]; exists {
-		s.BasicAuthEnabled = v.(bool)
+		if basicAuth, ok := v.(bool); ok {
+			s.BasicAuthEnabled = basicAuth
+		}
 	}
 	if s.BasicAuthEnabled {
 		if v, exists := dat["basicAuthUser"]; exists {
@@ -213,13 +217,19 @@ func parseHTTPSettings(jsonData json.RawMessage, secureJSONData map[string]strin
 
 	// TLS
 	if v, exists := dat["tlsAuth"]; exists {
-		s.TLSClientAuth = v.(bool)
+		if tlsClientAuth, ok := v.(bool); ok {
+			s.TLSClientAuth = tlsClientAuth
+		}
 	}
 	if v, exists := dat["tlsAuthWithCACert"]; exists {
-		s.TLSAuthWithCACert = v.(bool)
+		if tslAuthCert, ok := v.(bool); ok {
+			s.TLSAuthWithCACert = tslAuthCert
+		}
 	}
 	if v, exists := dat["tlsSkipVerify"]; exists {
-		s.TLSSkipVerify = v.(bool)
+		if tlsSkipVerify, ok := v.(bool); ok {
+			s.TLSSkipVerify = tlsSkipVerify
+		}
 	}
 
 	if s.TLSClientAuth || s.TLSAuthWithCACert {
@@ -239,7 +249,9 @@ func parseHTTPSettings(jsonData json.RawMessage, secureJSONData map[string]strin
 
 	// SigV4
 	if v, exists := dat["sigV4Auth"]; exists {
-		s.SigV4Auth = v.(bool)
+		if sigV4Auth, ok := v.(bool); ok {
+			s.SigV4Auth = sigV4Auth
+		}
 	}
 
 	if s.SigV4Auth {
@@ -263,6 +275,9 @@ func parseHTTPSettings(jsonData json.RawMessage, secureJSONData map[string]strin
 		}
 		if v, exists := secureJSONData["sigV4SecretKey"]; exists {
 			s.SigV4SecretKey = v
+		}
+		if v, exists := secureJSONData["sigV4SessionToken"]; exists {
+			s.SigV4SessionToken = v
 		}
 	}
 

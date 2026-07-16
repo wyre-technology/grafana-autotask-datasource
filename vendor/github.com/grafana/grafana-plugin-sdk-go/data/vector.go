@@ -9,9 +9,13 @@ type vector interface {
 	Set(idx int, i interface{})
 	Append(i interface{})
 	Extend(i int)
+	// Grow reserves capacity for at least n additional elements without
+	// changing length. It is a no-op if the existing capacity already fits.
+	Grow(n int)
 	At(i int) interface{}
 	NilAt(i int) bool
 	Len() int
+	Cap() int
 	Type() FieldType
 	PointerAt(i int) interface{}
 	CopyAt(i int) interface{}
@@ -19,6 +23,7 @@ type vector interface {
 	SetConcrete(i int, val interface{})
 	Insert(i int, val interface{})
 	Delete(i int)
+	Clear()
 }
 
 // nolint:gocyclo

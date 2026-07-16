@@ -16,15 +16,11 @@ import (
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
-	bra "github.com/unknwon/bra/cmd"
+	bra "github.com/unknwon/bra/cmd" // nolint:misspell
 	"github.com/urfave/cli"
 
+	"github.com/grafana/grafana-plugin-sdk-go/build/buildinfo"
 	"github.com/grafana/grafana-plugin-sdk-go/build/utils"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/e2e"
-	ca "github.com/grafana/grafana-plugin-sdk-go/experimental/e2e/certificate_authority"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/e2e/config"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/e2e/fixture"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/e2e/storage"
 	"github.com/grafana/grafana-plugin-sdk-go/internal"
 )
 
@@ -157,7 +153,7 @@ func getBuildBackendCmdInfo(cfg Config) (Config, []string, error) {
 		"build", "-o", filepath.Join(outputPath, exePath),
 	}
 
-	info := Info{
+	info := buildinfo.Info{
 		Time: now().UnixNano() / int64(time.Millisecond),
 	}
 	pluginID, err := internal.GetStringValueFromJSON(filepath.Join(pluginJSONPath, "plugin.json"), "id")
@@ -172,7 +168,7 @@ func getBuildBackendCmdInfo(cfg Config) (Config, []string, error) {
 	args = append(args, "-tags", "arrow_json_stdlib")
 
 	flags := make(map[string]string, 10)
-	info.appendFlags(flags)
+	info.AppendFlags(flags)
 
 	if cfg.CustomVars != nil {
 		for k, v := range cfg.CustomVars {
@@ -251,6 +247,13 @@ func (Build) DarwinARM64() error {
 	return buildBackend(newBuildConfig("darwin", "arm64"))
 }
 
+// Custom allows customizable back-end plugin builds for the provided os and arch.
+// Note: Cutomized builds are not officially supported by Grafana, so this option is intended for developers who need
+// to create their own custom build targets.
+func (Build) Custom(os, arch string) error {
+	return buildBackend(newBuildConfig(os, arch))
+}
+
 // GenerateManifestFile generates a manifest file for plugin submissions
 func (Build) GenerateManifestFile() error {
 	config := Config{}
@@ -268,7 +271,7 @@ func (Build) GenerateManifestFile() error {
 	}
 
 	manifestFilePath := filepath.Join(outputPath, "go_plugin_build_manifest")
-	err = os.MkdirAll(outputPath, 0755)
+	err = os.MkdirAll(outputPath, 0755) // #nosec G301
 	if err != nil {
 		return err
 	}
@@ -386,9 +389,15 @@ func Test() error {
 	return sh.RunV("go", "test", "./pkg/...")
 }
 
+// TestRace runs backend tests with the data race detector enabled.
+func TestRace() error {
+	return sh.RunV("go", "test", "-race", "./pkg/...")
+}
+
 // Coverage runs backend tests and makes a coverage report.
 func Coverage() error {
 	// Create a coverage folder if it does not already exist
+	// #nosec G301
 	if err := os.MkdirAll(filepath.Join(".", "coverage"), os.ModePerm); err != nil {
 		return err
 	}
@@ -431,60 +440,6 @@ func Clean() error {
 		return err
 	}
 	return nil
-}
-
-// E2E is a namespace.
-type E2E mg.Namespace
-
-// Append starts the E2E proxy in append mode.
-func (E2E) Append() error {
-	return e2eProxy(e2e.ProxyModeAppend)
-}
-
-// Overwrite starts the E2E proxy in overwrite mode.
-func (E2E) Overwrite() error {
-	return e2eProxy(e2e.ProxyModeOverwrite)
-}
-
-// Replay starts the E2E proxy in replay mode.
-func (E2E) Replay() error {
-	return e2eProxy(e2e.ProxyModeReplay)
-}
-
-// Certificate prints the CA certificate to stdout.
-func (E2E) Certificate() error {
-	cfg, err := config.LoadConfig("proxy.json")
-	if err != nil {
-		return err
-	}
-
-	if cert, _, err := ca.LoadKeyPair(cfg.CAConfig.Cert, cfg.CAConfig.PrivateKey); err == nil {
-		fmt.Print(string(cert))
-		return nil
-	}
-
-	fmt.Print(string(ca.CACertificate))
-	return nil
-}
-
-func e2eProxy(mode e2e.ProxyMode) error {
-	cfg, err := config.LoadConfig("proxy.json")
-	if err != nil {
-		return err
-	}
-	fixtures := make([]*fixture.Fixture, 0)
-	for _, s := range cfg.Storage {
-		switch s.Type {
-		case config.StorageTypeHAR:
-			store := storage.NewHARStorage(s.Path)
-			fixtures = append(fixtures, fixture.NewFixture(store))
-		case config.StorageTypeOpenAPI:
-			store := storage.NewOpenAPIStorage(s.Path)
-			fixtures = append(fixtures, fixture.NewFixture(store))
-		}
-	}
-	proxy := e2e.NewProxy(mode, fixtures, cfg)
-	return proxy.Start()
 }
 
 // checkLinuxPtraceScope verifies that ptrace is configured as required.

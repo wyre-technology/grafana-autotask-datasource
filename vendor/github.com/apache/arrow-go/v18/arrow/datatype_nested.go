@@ -443,7 +443,10 @@ func (t *StructType) String() string {
 		if i > 0 {
 			o.WriteString(", ")
 		}
-		o.WriteString(fmt.Sprintf("%s: %v", f.Name, f.Type))
+		fmt.Fprintf(&o, "%s: %v", f.Name, f.Type)
+		if f.Nullable {
+			o.WriteString(" nullable")
+		}
 	}
 	o.WriteString(">")
 	return o.String()
@@ -536,6 +539,23 @@ func MapOf(key, item DataType) *MapType {
 	return &MapType{value: ListOf(StructOf(Field{Name: "key", Type: key}, Field{Name: "value", Type: item, Nullable: true}))}
 }
 
+func MapOfFields(key, item Field) *MapType {
+	if key.Type == nil || item.Type == nil {
+		panic("arrow: nil key or item type for MapType")
+	}
+
+	if key.Nullable {
+		panic("arrow: key field must be non-nullable")
+	}
+
+	key.Name = "key"
+	item.Name = "value"
+	return &MapType{value: ListOfField(Field{
+		Name: "entries",
+		Type: StructOf(key, item),
+	})}
+}
+
 func MapOfWithMetadata(key DataType, keyMetadata Metadata, item DataType, itemMetadata Metadata) *MapType {
 	if key == nil || item == nil {
 		panic("arrow: nil key or item type for MapType")
@@ -558,9 +578,9 @@ func (*MapType) Name() string { return "map" }
 
 func (t *MapType) String() string {
 	var o strings.Builder
-	o.WriteString(fmt.Sprintf("map<%s, %s",
+	fmt.Fprintf(&o, "map<%s, %s",
 		t.value.Elem().(*StructType).Field(0).Type,
-		t.value.Elem().(*StructType).Field(1).Type))
+		t.value.Elem().(*StructType).Field(1).Type)
 	if t.KeysSorted {
 		o.WriteString(", keys_sorted")
 	}

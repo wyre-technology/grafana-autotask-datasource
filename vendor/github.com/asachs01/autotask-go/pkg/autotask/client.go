@@ -53,11 +53,16 @@ type client struct {
 	logger *Logger
 
 	// Entity clients
-	companiesService *companiesService
-	ticketsService   *ticketsService
-	contactsService  *contactsService
-	webhooksService  *webhookService
-	resourcesService *resourcesService
+	companiesService          *companiesService
+	ticketsService            *ticketsService
+	contactsService           *contactsService
+	webhooksService           *webhookService
+	resourcesService          *resourcesService
+	projectsService           *projectsService
+	tasksService              *tasksService
+	timeEntriesService        *timeEntriesService
+	contractsService          *contractsService
+	configurationItemsService *configurationItemsService
 }
 
 // NewClient returns a new Autotask API client
@@ -91,6 +96,21 @@ func NewClient(username, secret, integrationCode string) Client {
 	}
 	c.resourcesService = &resourcesService{
 		BaseEntityService: NewBaseEntityService(c, "Resources"),
+	}
+	c.projectsService = &projectsService{
+		BaseEntityService: NewBaseEntityService(c, "Projects"),
+	}
+	c.tasksService = &tasksService{
+		BaseEntityService: NewBaseEntityService(c, "Tasks"),
+	}
+	c.timeEntriesService = &timeEntriesService{
+		BaseEntityService: NewBaseEntityService(c, "TimeEntries"),
+	}
+	c.contractsService = &contractsService{
+		BaseEntityService: NewBaseEntityService(c, "Contracts"),
+	}
+	c.configurationItemsService = &configurationItemsService{
+		BaseEntityService: NewBaseEntityService(c, "ConfigurationItems"),
 	}
 
 	return c
@@ -156,7 +176,13 @@ func (c *client) GetZoneInfo() (*ZoneInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			c.logger.Error("Failed to close response body", map[string]interface{}{
+				"error": cerr.Error(),
+			})
+		}
+	}()
 
 	// Log response headers
 	respHeaders := make(map[string]string)
@@ -268,7 +294,13 @@ func (c *client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			c.logger.Error("Failed to close response body", map[string]interface{}{
+				"error": cerr.Error(),
+			})
+		}
+	}()
 
 	// Log response headers
 	respHeaders := make(map[string]string)
@@ -277,7 +309,13 @@ func (c *client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	}
 	c.logger.LogResponse(resp.StatusCode, respHeaders)
 
-	if resp.StatusCode != http.StatusOK {
+	// Handle successful responses
+	if resp.StatusCode == http.StatusNoContent {
+		// For 204 No Content responses, there's no body to parse
+		return resp, nil
+	}
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return nil, c.handleErrorResponse(resp)
 	}
 
@@ -292,17 +330,20 @@ func (c *client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 		"body": string(body),
 	})
 
-	// If v is a pointer to []byte, store the raw body
-	if v != nil {
-		if b, ok := v.(*[]byte); ok {
-			*b = body
-			return resp, nil
-		}
+	// If v is nil, we don't need to parse the response
+	if v == nil {
+		return resp, nil
+	}
 
-		// Otherwise, unmarshal the JSON
-		if err := json.Unmarshal(body, v); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-		}
+	// If v is a pointer to []byte, store the raw body
+	if b, ok := v.(*[]byte); ok {
+		*b = body
+		return resp, nil
+	}
+
+	// Otherwise, unmarshal the JSON
+	if err := json.Unmarshal(body, v); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
 	return resp, nil
@@ -314,7 +355,11 @@ func (c *client) handleErrorResponse(resp *http.Response) error {
 	errorResp.Response = resp
 	data, err := io.ReadAll(resp.Body)
 	if err == nil && data != nil {
-		json.Unmarshal(data, &errorResp)
+		if unmarshalErr := json.Unmarshal(data, &errorResp); unmarshalErr != nil {
+			// If we can't unmarshal the error response, just log it and continue
+			// We'll still return the error response with the status code
+			c.logger.LogError(unmarshalErr)
+		}
 	}
 	return &errorResp
 }
@@ -342,4 +387,83 @@ func (c *client) Webhooks() WebhookService {
 // Resources returns the resources service
 func (c *client) Resources() ResourcesService {
 	return c.resourcesService
+}
+
+// Projects returns the projects service
+func (c *client) Projects() ProjectsService {
+	return c.projectsService
+}
+
+// Tasks returns the tasks service
+func (c *client) Tasks() TasksService {
+	return c.tasksService
+}
+
+// TimeEntries returns the time entries service
+func (c *client) TimeEntries() TimeEntriesService {
+	return c.timeEntriesService
+}
+
+// Contracts returns the contracts service
+func (c *client) Contracts() ContractsService {
+	return c.contractsService
+}
+
+// ConfigurationItems returns the configuration items service
+func (c *client) ConfigurationItems() ConfigurationItemsService {
+	return c.configurationItemsService
+}
+
+// queryWithEmptyFilter is a helper method to query an entity with an empty filter array
+func (c *client) queryWithEmptyFilter(ctx context.Context, entityName string) ([]map[string]interface{}, error) {
+	c.logger.Info("Querying with empty filter", map[string]interface{}{
+		"entity": entityName,
+	})
+
+	url := entityName + "/query"
+
+	// Use a simpler filter structure that just checks for ID existence
+	reqBody := map[string]interface{}{
+		"MaxRecords": 500,
+		"filter": []map[string]interface{}{
+			{
+				"field": "id",
+				"op":    "exist",
+			},
+		},
+	}
+
+	reqBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
+
+	c.logger.Debug("Query with empty filter", map[string]interface{}{
+		"request_body": string(reqBytes),
+		"entity":       entityName,
+	})
+
+	req, err := c.NewRequest(ctx, "POST", url, bytes.NewBuffer(reqBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Add special headers that might be required
+	req.Header.Set("Content-Type", "application/json")
+
+	var response struct {
+		Items []map[string]interface{} `json:"items"`
+	}
+
+	_, err = c.Do(req, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+
+	c.logger.Info("Retrieved entities using query with empty filter", map[string]interface{}{
+		"count":  len(response.Items),
+		"entity": entityName,
+	})
+
+	return response.Items, nil
 }

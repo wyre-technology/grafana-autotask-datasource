@@ -48,6 +48,10 @@ func (v *enumVector) Len() int {
 	return len(*v)
 }
 
+func (v *enumVector) Cap() int {
+	return cap(*v)
+}
+
 func (v *enumVector) CopyAt(i int) interface{} {
 	return (*v)[i]
 }
@@ -62,6 +66,15 @@ func (v *enumVector) Type() FieldType {
 
 func (v *enumVector) Extend(i int) {
 	*v = append(*v, make([]EnumItemIndex, i)...)
+}
+
+func (v *enumVector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]EnumItemIndex, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
 }
 
 func (v *enumVector) Insert(i int, val interface{}) {
@@ -79,6 +92,11 @@ func (v *enumVector) Insert(i int, val interface{}) {
 
 func (v *enumVector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
+}
+
+// set the length to zero, but keep the same capacity
+func (v *enumVector) Clear() {
+	*v = (*v)[:0]
 }
 
 type nullableEnumVector []*EnumItemIndex
@@ -150,12 +168,25 @@ func (v *nullableEnumVector) Len() int {
 	return len(*v)
 }
 
+func (v *nullableEnumVector) Cap() int {
+	return cap(*v)
+}
+
 func (v *nullableEnumVector) Type() FieldType {
 	return vectorFieldType(v)
 }
 
 func (v *nullableEnumVector) Extend(i int) {
 	*v = append(*v, make([]*EnumItemIndex, i)...)
+}
+
+func (v *nullableEnumVector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]*EnumItemIndex, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
 }
 
 func (v *nullableEnumVector) Insert(i int, val interface{}) {
@@ -173,4 +204,9 @@ func (v *nullableEnumVector) Insert(i int, val interface{}) {
 
 func (v *nullableEnumVector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
+}
+
+// set the length to zero, but keep the same capacity
+func (v *nullableEnumVector) Clear() {
+	*v = (*v)[:0]
 }

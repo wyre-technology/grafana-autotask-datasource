@@ -2,6 +2,7 @@
 // Any changes will be lost if this file is regenerated.
 // see https://github.com/cheekybits/genny
 
+//nolint:unused
 package data
 
 import (
@@ -50,8 +51,12 @@ func (v *uint8Vector) Len() int {
 	return len(*v)
 }
 
+func (v *uint8Vector) Cap() int {
+	return cap(*v)
+}
+
 func (v *uint8Vector) CopyAt(i int) interface{} {
-	var g uint8
+	var g uint8 //nolint:staticcheck // S1021: uint8erated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -66,6 +71,22 @@ func (v *uint8Vector) Type() FieldType {
 
 func (v *uint8Vector) Extend(i int) {
 	*v = append(*v, make([]uint8, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *uint8Vector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]uint8, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *uint8Vector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *uint8Vector) Insert(i int, val interface{}) {
@@ -84,6 +105,8 @@ func (v *uint8Vector) Insert(i int, val interface{}) {
 func (v *uint8Vector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type uint16Vector []uint16
 
@@ -126,8 +149,12 @@ func (v *uint16Vector) Len() int {
 	return len(*v)
 }
 
+func (v *uint16Vector) Cap() int {
+	return cap(*v)
+}
+
 func (v *uint16Vector) CopyAt(i int) interface{} {
-	var g uint16
+	var g uint16 //nolint:staticcheck // S1021: uint16erated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -142,6 +169,22 @@ func (v *uint16Vector) Type() FieldType {
 
 func (v *uint16Vector) Extend(i int) {
 	*v = append(*v, make([]uint16, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *uint16Vector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]uint16, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *uint16Vector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *uint16Vector) Insert(i int, val interface{}) {
@@ -160,6 +203,8 @@ func (v *uint16Vector) Insert(i int, val interface{}) {
 func (v *uint16Vector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type uint32Vector []uint32
 
@@ -202,8 +247,12 @@ func (v *uint32Vector) Len() int {
 	return len(*v)
 }
 
+func (v *uint32Vector) Cap() int {
+	return cap(*v)
+}
+
 func (v *uint32Vector) CopyAt(i int) interface{} {
-	var g uint32
+	var g uint32 //nolint:staticcheck // S1021: uint32erated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -218,6 +267,22 @@ func (v *uint32Vector) Type() FieldType {
 
 func (v *uint32Vector) Extend(i int) {
 	*v = append(*v, make([]uint32, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *uint32Vector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]uint32, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *uint32Vector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *uint32Vector) Insert(i int, val interface{}) {
@@ -236,6 +301,8 @@ func (v *uint32Vector) Insert(i int, val interface{}) {
 func (v *uint32Vector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type uint64Vector []uint64
 
@@ -278,8 +345,12 @@ func (v *uint64Vector) Len() int {
 	return len(*v)
 }
 
+func (v *uint64Vector) Cap() int {
+	return cap(*v)
+}
+
 func (v *uint64Vector) CopyAt(i int) interface{} {
-	var g uint64
+	var g uint64 //nolint:staticcheck // S1021: uint64erated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -294,6 +365,22 @@ func (v *uint64Vector) Type() FieldType {
 
 func (v *uint64Vector) Extend(i int) {
 	*v = append(*v, make([]uint64, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *uint64Vector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]uint64, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *uint64Vector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *uint64Vector) Insert(i int, val interface{}) {
@@ -312,6 +399,8 @@ func (v *uint64Vector) Insert(i int, val interface{}) {
 func (v *uint64Vector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type int8Vector []int8
 
@@ -354,8 +443,12 @@ func (v *int8Vector) Len() int {
 	return len(*v)
 }
 
+func (v *int8Vector) Cap() int {
+	return cap(*v)
+}
+
 func (v *int8Vector) CopyAt(i int) interface{} {
-	var g int8
+	var g int8 //nolint:staticcheck // S1021: int8erated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -370,6 +463,22 @@ func (v *int8Vector) Type() FieldType {
 
 func (v *int8Vector) Extend(i int) {
 	*v = append(*v, make([]int8, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *int8Vector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]int8, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *int8Vector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *int8Vector) Insert(i int, val interface{}) {
@@ -388,6 +497,8 @@ func (v *int8Vector) Insert(i int, val interface{}) {
 func (v *int8Vector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type int16Vector []int16
 
@@ -430,8 +541,12 @@ func (v *int16Vector) Len() int {
 	return len(*v)
 }
 
+func (v *int16Vector) Cap() int {
+	return cap(*v)
+}
+
 func (v *int16Vector) CopyAt(i int) interface{} {
-	var g int16
+	var g int16 //nolint:staticcheck // S1021: int16erated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -446,6 +561,22 @@ func (v *int16Vector) Type() FieldType {
 
 func (v *int16Vector) Extend(i int) {
 	*v = append(*v, make([]int16, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *int16Vector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]int16, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *int16Vector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *int16Vector) Insert(i int, val interface{}) {
@@ -464,6 +595,8 @@ func (v *int16Vector) Insert(i int, val interface{}) {
 func (v *int16Vector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type int32Vector []int32
 
@@ -506,8 +639,12 @@ func (v *int32Vector) Len() int {
 	return len(*v)
 }
 
+func (v *int32Vector) Cap() int {
+	return cap(*v)
+}
+
 func (v *int32Vector) CopyAt(i int) interface{} {
-	var g int32
+	var g int32 //nolint:staticcheck // S1021: int32erated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -522,6 +659,22 @@ func (v *int32Vector) Type() FieldType {
 
 func (v *int32Vector) Extend(i int) {
 	*v = append(*v, make([]int32, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *int32Vector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]int32, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *int32Vector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *int32Vector) Insert(i int, val interface{}) {
@@ -540,6 +693,8 @@ func (v *int32Vector) Insert(i int, val interface{}) {
 func (v *int32Vector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type int64Vector []int64
 
@@ -582,8 +737,12 @@ func (v *int64Vector) Len() int {
 	return len(*v)
 }
 
+func (v *int64Vector) Cap() int {
+	return cap(*v)
+}
+
 func (v *int64Vector) CopyAt(i int) interface{} {
-	var g int64
+	var g int64 //nolint:staticcheck // S1021: int64erated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -598,6 +757,22 @@ func (v *int64Vector) Type() FieldType {
 
 func (v *int64Vector) Extend(i int) {
 	*v = append(*v, make([]int64, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *int64Vector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]int64, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *int64Vector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *int64Vector) Insert(i int, val interface{}) {
@@ -616,6 +791,8 @@ func (v *int64Vector) Insert(i int, val interface{}) {
 func (v *int64Vector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type float32Vector []float32
 
@@ -658,8 +835,12 @@ func (v *float32Vector) Len() int {
 	return len(*v)
 }
 
+func (v *float32Vector) Cap() int {
+	return cap(*v)
+}
+
 func (v *float32Vector) CopyAt(i int) interface{} {
-	var g float32
+	var g float32 //nolint:staticcheck // S1021: float32erated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -674,6 +855,22 @@ func (v *float32Vector) Type() FieldType {
 
 func (v *float32Vector) Extend(i int) {
 	*v = append(*v, make([]float32, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *float32Vector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]float32, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *float32Vector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *float32Vector) Insert(i int, val interface{}) {
@@ -692,6 +889,8 @@ func (v *float32Vector) Insert(i int, val interface{}) {
 func (v *float32Vector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type float64Vector []float64
 
@@ -734,8 +933,12 @@ func (v *float64Vector) Len() int {
 	return len(*v)
 }
 
+func (v *float64Vector) Cap() int {
+	return cap(*v)
+}
+
 func (v *float64Vector) CopyAt(i int) interface{} {
-	var g float64
+	var g float64 //nolint:staticcheck // S1021: float64erated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -750,6 +953,22 @@ func (v *float64Vector) Type() FieldType {
 
 func (v *float64Vector) Extend(i int) {
 	*v = append(*v, make([]float64, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *float64Vector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]float64, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *float64Vector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *float64Vector) Insert(i int, val interface{}) {
@@ -768,6 +987,8 @@ func (v *float64Vector) Insert(i int, val interface{}) {
 func (v *float64Vector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type stringVector []string
 
@@ -810,8 +1031,12 @@ func (v *stringVector) Len() int {
 	return len(*v)
 }
 
+func (v *stringVector) Cap() int {
+	return cap(*v)
+}
+
 func (v *stringVector) CopyAt(i int) interface{} {
-	var g string
+	var g string //nolint:staticcheck // S1021: stringerated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -826,6 +1051,22 @@ func (v *stringVector) Type() FieldType {
 
 func (v *stringVector) Extend(i int) {
 	*v = append(*v, make([]string, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *stringVector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]string, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *stringVector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *stringVector) Insert(i int, val interface{}) {
@@ -844,6 +1085,8 @@ func (v *stringVector) Insert(i int, val interface{}) {
 func (v *stringVector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type boolVector []bool
 
@@ -886,8 +1129,12 @@ func (v *boolVector) Len() int {
 	return len(*v)
 }
 
+func (v *boolVector) Cap() int {
+	return cap(*v)
+}
+
 func (v *boolVector) CopyAt(i int) interface{} {
-	var g bool
+	var g bool //nolint:staticcheck // S1021: boolerated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -902,6 +1149,22 @@ func (v *boolVector) Type() FieldType {
 
 func (v *boolVector) Extend(i int) {
 	*v = append(*v, make([]bool, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *boolVector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]bool, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *boolVector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *boolVector) Insert(i int, val interface{}) {
@@ -920,6 +1183,8 @@ func (v *boolVector) Insert(i int, val interface{}) {
 func (v *boolVector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type timeTimeVector []time.Time
 
@@ -962,8 +1227,12 @@ func (v *timeTimeVector) Len() int {
 	return len(*v)
 }
 
+func (v *timeTimeVector) Cap() int {
+	return cap(*v)
+}
+
 func (v *timeTimeVector) CopyAt(i int) interface{} {
-	var g time.Time
+	var g time.Time //nolint:staticcheck // S1021: timeTimeerated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -978,6 +1247,22 @@ func (v *timeTimeVector) Type() FieldType {
 
 func (v *timeTimeVector) Extend(i int) {
 	*v = append(*v, make([]time.Time, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *timeTimeVector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]time.Time, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *timeTimeVector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *timeTimeVector) Insert(i int, val interface{}) {
@@ -996,6 +1281,8 @@ func (v *timeTimeVector) Insert(i int, val interface{}) {
 func (v *timeTimeVector) Delete(i int) {
 	*v = append((*v)[:i], (*v)[i+1:]...)
 }
+
+//nolint:unused
 
 type jsonRawMessageVector []json.RawMessage
 
@@ -1038,8 +1325,12 @@ func (v *jsonRawMessageVector) Len() int {
 	return len(*v)
 }
 
+func (v *jsonRawMessageVector) Cap() int {
+	return cap(*v)
+}
+
 func (v *jsonRawMessageVector) CopyAt(i int) interface{} {
-	var g json.RawMessage
+	var g json.RawMessage //nolint:staticcheck // S1021: jsonRawMessageerated code pattern  ;
 	g = (*v)[i]
 	return g
 }
@@ -1054,6 +1345,22 @@ func (v *jsonRawMessageVector) Type() FieldType {
 
 func (v *jsonRawMessageVector) Extend(i int) {
 	*v = append(*v, make([]json.RawMessage, i)...)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the vector's length. It is a no-op if the existing capacity already fits.
+func (v *jsonRawMessageVector) Grow(n int) {
+	if n <= 0 || cap(*v)-len(*v) >= n {
+		return
+	}
+	grown := make([]json.RawMessage, len(*v), len(*v)+n)
+	copy(grown, *v)
+	*v = grown
+}
+
+// set the length to zero, but keep the same capacity
+func (v *jsonRawMessageVector) Clear() {
+	*v = (*v)[:0]
 }
 
 func (v *jsonRawMessageVector) Insert(i int, val interface{}) {

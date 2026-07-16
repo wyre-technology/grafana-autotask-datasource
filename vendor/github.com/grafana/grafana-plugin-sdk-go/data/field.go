@@ -160,11 +160,42 @@ func (f *Field) Append(e interface{}) {
 	f.vector.Append(e)
 }
 
+// AppendAll appends all elements from Field f2 to Field f.
+// If f2 is empty, no operation is performed.
+// It will copy elements from f2 and append them to f, extending f's length as needed.
+func (f *Field) AppendAll(f2 *Field) {
+	n := f2.Len()
+	if n == 0 {
+		return
+	}
+
+	offset := f.Len()
+	f.Extend(n)
+
+	for i := 0; i < n; i++ {
+		f.Set(offset+i, f2.CopyAt(i))
+	}
+}
+
 // Extend extends the Field length by i.
 // Consider using Frame.Extend() when possible since all Fields within
 // a Frame need to be of the same length before marshalling and transmission.
 func (f *Field) Extend(i int) {
 	f.vector.Extend(i)
+}
+
+// Grow reserves capacity for at least n additional elements without changing
+// the Field's length. Use this before a sequence of Append calls when the
+// final size is known, to avoid repeated reallocation of the underlying slice.
+// It is a no-op if the existing capacity already fits.
+func (f *Field) Grow(n int) {
+	f.vector.Grow(n)
+}
+
+// Capacity returns the capacity of the Field's underlying vector. It is
+// primarily useful for verifying the effect of Grow.
+func (f *Field) Capacity() int {
+	return f.vector.Cap()
 }
 
 // At returns the the element at index idx of the Field.

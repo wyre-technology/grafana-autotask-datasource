@@ -46,7 +46,7 @@ func (f *Frame) MarshalArrow() ([]byte, error) {
 	}
 
 	for tableReader.Next() {
-		rec := tableReader.Record()
+		rec := tableReader.Record() //nolint:staticcheck // SA1019: Using deprecated Record() API for backwards compatibility
 
 		if err := fw.Write(rec); err != nil {
 			rec.Release()
@@ -369,6 +369,12 @@ func initializeFrameField(field arrow.Field, idx int, nullable []bool, sdkField 
 			break
 		}
 		sdkField.vector = newStringVector(0)
+	case arrow.STRING_VIEW:
+		if nullable[idx] {
+			sdkField.vector = newNullableStringVector(0)
+			break
+		}
+		sdkField.vector = newStringVector(0)
 	case arrow.INT8:
 		if nullable[idx] {
 			sdkField.vector = newNullableInt8Vector(0)
@@ -463,7 +469,7 @@ func initializeFrameField(field arrow.Field, idx int, nullable []bool, sdkField 
 	return nil
 }
 
-func populateFrameFieldsFromRecord(record arrow.Record, nullable []bool, frame *Frame) error {
+func populateFrameFieldsFromRecord(record arrow.Record, nullable []bool, frame *Frame) error { //nolint:staticcheck // SA1019: Using deprecated Record type for backwards compatibility
 	for i := 0; i < len(frame.Fields); i++ {
 		col := record.Column(i)
 		if err := parseColumn(col, i, nullable, frame); err != nil {
@@ -495,6 +501,21 @@ func parseColumn(col arrow.Array, i int, nullable []bool, frame *Frame) error {
 	switch col.DataType().ID() {
 	case arrow.STRING:
 		v := array.NewStringData(col.Data())
+		for rIdx := 0; rIdx < col.Len(); rIdx++ {
+			if nullable[i] {
+				if v.IsNull(rIdx) {
+					var ns *string
+					frame.Fields[i].vector.Append(ns)
+					continue
+				}
+				rv := v.Value(rIdx)
+				frame.Fields[i].vector.Append(&rv)
+				continue
+			}
+			frame.Fields[i].vector.Append(v.Value(rIdx))
+		}
+	case arrow.STRING_VIEW:
+		v := array.NewStringViewData(col.Data())
 		for rIdx := 0; rIdx < col.Len(); rIdx++ {
 			if nullable[i] {
 				if v.IsNull(rIdx) {
@@ -739,7 +760,7 @@ func populateFrameFromSchema(schema *arrow.Schema, frame *Frame) error {
 }
 
 // FromArrowRecord converts a an Arrow record batch into a Frame.
-func FromArrowRecord(record arrow.Record) (*Frame, error) {
+func FromArrowRecord(record arrow.Record) (*Frame, error) { //nolint:staticcheck // SA1019: Using deprecated Record type for backwards compatibility
 	schema := record.Schema()
 	frame := &Frame{}
 	if err := populateFrameFromSchema(schema, frame); err != nil {
@@ -764,7 +785,7 @@ func UnmarshalArrowFrame(b []byte) (*Frame, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer fR.Close()
+	defer func() { _ = fR.Close() }()
 
 	schema := fR.Schema()
 	frame := &Frame{}

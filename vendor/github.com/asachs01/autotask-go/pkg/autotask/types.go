@@ -64,6 +64,12 @@ type EntityService interface {
 
 	// GetPreviousPage gets the previous page of results
 	GetPreviousPage(ctx context.Context, pageDetails PageDetails) ([]interface{}, error)
+
+	// GetEntityName returns the name of the entity
+	GetEntityName() string
+
+	// GetClient returns the client used by the service
+	GetClient() Client
 }
 
 // CompaniesService represents the companies service interface
@@ -101,10 +107,36 @@ type WebhookService interface {
 	CreateWebhook(ctx context.Context, url string, events []string) error
 	DeleteWebhook(ctx context.Context, id int64) error
 	ListWebhooks(ctx context.Context) ([]interface{}, error)
+	SetWebhookSecret(secret string)
 }
 
 // ResourcesService represents the resources service interface
 type ResourcesService interface {
+	EntityService
+}
+
+// ProjectsService represents the projects service interface
+type ProjectsService interface {
+	EntityService
+}
+
+// TasksService represents the tasks service interface
+type TasksService interface {
+	EntityService
+}
+
+// TimeEntriesService represents the time entries service interface
+type TimeEntriesService interface {
+	EntityService
+}
+
+// ContractsService represents the contracts service interface
+type ContractsService interface {
+	EntityService
+}
+
+// ConfigurationItemsService represents the configuration items service interface
+type ConfigurationItemsService interface {
 	EntityService
 }
 
@@ -124,6 +156,21 @@ type Client interface {
 
 	// Webhooks returns the webhooks service
 	Webhooks() WebhookService
+
+	// Projects returns the projects service
+	Projects() ProjectsService
+
+	// Tasks returns the tasks service
+	Tasks() TasksService
+
+	// TimeEntries returns the time entries service
+	TimeEntries() TimeEntriesService
+
+	// Contracts returns the contracts service
+	Contracts() ContractsService
+
+	// ConfigurationItems returns the configuration items service
+	ConfigurationItems() ConfigurationItemsService
 
 	// SetLogLevel sets the logging level
 	SetLogLevel(level LogLevel)

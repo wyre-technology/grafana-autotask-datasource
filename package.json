@@ -79,5 +79,12 @@
     "@grafana/ui": "^11.5.2",
     "react": "18.2.0",
     "react-dom": "18.2.0"
+  },
+  "overrides": {
+    "fast-uri": "3.1.2",
+    "uplot": "1.6.31",
+    "@grafana/runtime": {
+      "immutable": "5.1.5"
+    }
   }
 }

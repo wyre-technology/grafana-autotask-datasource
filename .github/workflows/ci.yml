@@ -186,13 +186,16 @@ jobs:
       - name: Wait for grafana server
         uses: grafana/plugin-actions/wait-for-grafana@main
         with:
-          url: http://localhost:3000/login
+          # docker-compose publishes the container's port 3000 on host port 3300
+          url: http://localhost:3300/login
 
       - name: Install Playwright Browsers
         run: npm exec playwright install chromium --with-deps
 
       - name: Run Playwright tests
         id: run-tests
+        env:
+          GRAFANA_URL: http://localhost:3300
         run: npm run e2e
 
       - name: Upload e2e test summary

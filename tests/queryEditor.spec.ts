@@ -1,28 +1,26 @@
 import { test, expect } from '@grafana/plugin-e2e';
 
+const FILTER_PLACEHOLDER = '{"op":"eq","field":"status","value":1}';
+
 test('smoke: should render query editor', async ({ panelEditPage, readProvisionedDataSource }) => {
   const ds = await readProvisionedDataSource({ fileName: 'datasources.yml' });
   await panelEditPage.datasource.set(ds.name);
-  await expect(panelEditPage.getQueryEditorRow('A').getByRole('textbox', { name: 'Query Text' })).toBeVisible();
+
+  const queryEditorRow = panelEditPage.getQueryEditorRow('A');
+  await expect(queryEditorRow.getByText('Entity', { exact: true })).toBeVisible();
+  await expect(queryEditorRow.getByText('Time Field', { exact: true })).toBeVisible();
+  await expect(queryEditorRow.getByPlaceholder(FILTER_PLACEHOLDER)).toBeVisible();
 });
 
-test('should trigger new query when Constant field is changed', async ({
-  panelEditPage,
-  readProvisionedDataSource,
-}) => {
+test('should trigger new query when the filter is changed', async ({ panelEditPage, readProvisionedDataSource }) => {
   const ds = await readProvisionedDataSource({ fileName: 'datasources.yml' });
   await panelEditPage.datasource.set(ds.name);
-  await panelEditPage.getQueryEditorRow('A').getByRole('textbox', { name: 'Query Text' }).fill('test query');
+
+  const filter = panelEditPage.getQueryEditorRow('A').getByPlaceholder(FILTER_PLACEHOLDER);
+  await filter.fill(FILTER_PLACEHOLDER);
+
+  // The editor only runs the query on blur, so wire up the listener first.
   const queryReq = panelEditPage.waitForQueryDataRequest();
-  await panelEditPage.getQueryEditorRow('A').getByRole('spinbutton').fill('10');
+  await filter.blur();
   await expect(await queryReq).toBeTruthy();
-});
-
-test('data query should return values 10 and 20', async ({ panelEditPage, readProvisionedDataSource }) => {
-  const ds = await readProvisionedDataSource({ fileName: 'datasources.yml' });
-  await panelEditPage.datasource.set(ds.name);
-  await panelEditPage.getQueryEditorRow('A').getByRole('textbox', { name: 'Query Text' }).fill('test query');
-  await panelEditPage.setVisualization('Table');
-  await expect(panelEditPage.refreshPanel()).toBeOK();
-  await expect(panelEditPage.panel.data).toContainText(['10', '20']);
 });

@@ -24,9 +24,8 @@ test('"Save & test" should fail when credentials are missing', async ({
   await page.getByPlaceholder('user@company.com').fill('user@example.com');
 
   // AutotaskDatasource overrides testDatasource() to call its own
-  // `resources/zoneinfo` endpoint rather than Grafana's health API, so there is
-  // no health response to wait for. Assert on the resulting alert instead.
-  await configPage.saveAndTest({ skipWaitForResponse: true });
-
-  await expect(configPage).toHaveAlert('error');
+  // `resources/zoneinfo` endpoint rather than Grafana's health API, so point
+  // saveAndTest at that path instead of waiting on a health call that never
+  // happens. The backend rejects the incomplete settings with a 500.
+  await expect(configPage.saveAndTest({ path: '/resources/zoneinfo' })).not.toBeOK();
 });

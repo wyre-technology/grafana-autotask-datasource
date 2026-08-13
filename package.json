@@ -21,7 +21,7 @@
     "@grafana/plugin-e2e": "^3.10.0",
     "@grafana/toolkit": "^10.0.0",
     "@grafana/tsconfig": "^2.2.0",
-    "@grafana/ui": "^13.1.1",
+    "@grafana/ui": "^10.0.0",
     "@playwright/test": "^1.41.2",
     "@stylistic/eslint-plugin-ts": "^4.4.1",
     "@swc/core": "^1.15.43",
@@ -74,9 +74,9 @@
   "dependencies": {
     "@emotion/css": "11.10.6",
     "@grafana/data": "^11.5.2",
-    "@grafana/runtime": "^13.1.1",
+    "@grafana/runtime": "^11.5.2",
     "@grafana/schema": "^11.5.2",
-    "@grafana/ui": "^13.1.1",
+    "@grafana/ui": "^11.5.2",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   }
